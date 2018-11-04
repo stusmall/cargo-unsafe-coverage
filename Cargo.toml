@@ -1,0 +1,8 @@
+[package]
+name = "cargo-unsafe-coverage"
+version = "0.1.0"
+authors = ["Stu Small <stuart.alan.small@gmail.com>"]
+
+[dependencies]
+failure = "0.1"
+syn = {version="0.15", features=["full", "parsing" ]}
