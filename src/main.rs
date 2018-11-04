@@ -19,18 +19,10 @@ struct SafenessSummary {
 }
 
 impl SafenessSummary {
-    fn new_leaf(is_unsafe:bool) -> Self {
-        SafenessSummary{
-            safe_statements: if is_unsafe {
-                0
-            } else {
-                1
-            },
-            unsafe_statements: if is_unsafe {
-                1
-            } else{
-                0
-            }
+    fn new_leaf(is_unsafe: bool) -> Self {
+        SafenessSummary {
+            safe_statements: if is_unsafe { 0 } else { 1 },
+            unsafe_statements: if is_unsafe { 1 } else { 0 },
         }
     }
 }
@@ -68,12 +60,13 @@ fn process_string(src: &str) -> Result<SafenessSummary, Error> {
 
 fn process_expression(expr: &Expr, already_unsafe: bool) -> SafenessSummary {
     match expr {
-        Expr::Call(call) => {
-            call.args
-                .iter()
-                .map(|expr| process_expression(&expr, already_unsafe))
-                .fold(SafenessSummary::new_leaf(already_unsafe), |acc, summary| acc + summary)
-        }
+        Expr::Call(call) => call
+            .args
+            .iter()
+            .map(|expr| process_expression(&expr, already_unsafe))
+            .fold(SafenessSummary::new_leaf(already_unsafe), |acc, summary| {
+                acc + summary
+            }),
 
         Expr::Unsafe(unsafe_block) => unsafe_block
             .block
@@ -109,15 +102,16 @@ fn process_item(item: &Item, already_unsafe: bool) -> SafenessSummary {
         Item::Use(_) => unimplemented!(),
         Item::Static(_) => unimplemented!(),
         Item::Const(_) => unimplemented!(),
-        Item::Fn(function) => function  //TODO: check safeness of function
+        Item::Fn(function) => function //TODO: check safeness of function
             .block
             .stmts
             .iter()
             .map(|stmt| process_stmt(&stmt, already_unsafe || function.unsafety.is_some()))
-            .fold(SafenessSummary::new_leaf(already_unsafe || function.unsafety.is_some()), |acc, summary| acc + summary),
-        Item::Mod(m) => {
-            SafenessSummary::new_leaf(already_unsafe)
-        }
+            .fold(
+                SafenessSummary::new_leaf(already_unsafe || function.unsafety.is_some()),
+                |acc, summary| acc + summary,
+            ),
+        Item::Mod(m) => SafenessSummary::new_leaf(already_unsafe),
         Item::ForeignMod(_) => unimplemented!(),
         Item::Type(_) => unimplemented!(),
         Item::Existential(_) => unimplemented!(),
@@ -149,7 +143,6 @@ fn hello_world() {
         }
     );
 }
-
 
 #[test]
 fn simple_unsafe_block() {
@@ -188,5 +181,37 @@ fn main() {
             safe_statements: 1,
             unsafe_statements: 2
         }
+    );
+}
+
+#[test]
+fn compare_split_unsafe_blocks() {
+    let source1 = "
+fn main() {
+  unsafe {
+    foreign();
+    foreign();
+    foreign();
+  }
+}
+";
+
+    let source2 = "
+fn main() {
+  unsafe {
+    foreign();
+  }
+  unsafe {
+    foreign();
+  }
+  unsafe{
+    foreign();
+  }
+}
+";
+
+    assert_eq!(
+        process_string(source1).unwrap(),
+        process_string(source2).unwrap()
     );
 }
