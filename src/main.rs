@@ -14,15 +14,15 @@ use syn::{Expr, Item, Stmt};
 
 #[derive(Debug, Default, PartialEq)]
 struct SafenessSummary {
-    safe_statements: u64,
-    unsafe_statements: u64,
+    safe_expressions: u64,
+    unsafe_expressions: u64,
 }
 
 impl SafenessSummary {
     fn new_leaf(is_unsafe: bool) -> Self {
         SafenessSummary {
-            safe_statements: if is_unsafe { 0 } else { 1 },
-            unsafe_statements: if is_unsafe { 1 } else { 0 },
+            safe_expressions: if is_unsafe { 0 } else { 1 },
+            unsafe_expressions: if is_unsafe { 1 } else { 0 },
         }
     }
 }
@@ -32,8 +32,8 @@ impl Add for SafenessSummary {
 
     fn add(self, other: Self) -> Self {
         SafenessSummary {
-            safe_statements: self.safe_statements + other.safe_statements,
-            unsafe_statements: self.unsafe_statements + other.unsafe_statements,
+            safe_expressions: self.safe_expressions + other.safe_expressions,
+            unsafe_expressions: self.unsafe_expressions + other.unsafe_expressions,
         }
     }
 }
@@ -138,8 +138,8 @@ fn hello_world() {
     assert_eq!(
         process_string(source).unwrap(),
         SafenessSummary {
-            safe_statements: 2,
-            unsafe_statements: 0
+            safe_expressions: 2,
+            unsafe_expressions: 0
         }
     );
 }
@@ -157,8 +157,8 @@ fn simple_unsafe_block() {
     assert_eq!(
         process_string(source).unwrap(),
         SafenessSummary {
-            safe_statements: 1,
-            unsafe_statements: 1
+            safe_expressions: 1,
+            unsafe_expressions: 1
         }
     );
 }
@@ -178,8 +178,8 @@ fn main() {
     assert_eq!(
         process_string(source).unwrap(),
         SafenessSummary {
-            safe_statements: 1,
-            unsafe_statements: 2
+            safe_expressions: 1,
+            unsafe_expressions: 2
         }
     );
 }
