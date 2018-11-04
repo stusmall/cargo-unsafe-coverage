@@ -102,7 +102,7 @@ fn process_item(item: &Item, already_unsafe: bool) -> SafenessSummary {
         Item::Use(_) => unimplemented!(),
         Item::Static(_) => unimplemented!(),
         Item::Const(_) => unimplemented!(),
-        Item::Fn(function) => function //TODO: check safeness of function
+        Item::Fn(function) => function
             .block
             .stmts
             .iter()
